@@ -1,3 +1,7 @@
+*
+!/**/
+!*.*
+
 # Prerequisites
 *.d
 
@@ -46,6 +50,7 @@
 *.mod*
 *.cmd
 .tmp_versions/
+.vscode/
 modules.order
 Module.symvers
 Mkfile.old
