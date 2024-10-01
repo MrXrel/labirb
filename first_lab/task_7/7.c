@@ -88,13 +88,12 @@ enum return_code write_symbol_from_input_file_to_output_until_delimeter(FILE* in
     do {
         fputc(*last_char, output);
         *last_char = fgetc(input);
-        if (*last_char  == EOF) {
+        if (*last_char == EOF) {
             return OK;
         }
     } while (!is_delimiter(*last_char));
     return OK;
 }
-
 
 enum return_code for_a(FILE* input_file, FILE* output_file) {
     if (!input_file || !output_file) {
@@ -114,18 +113,17 @@ enum return_code for_a(FILE* input_file, FILE* output_file) {
                 convert_decimal_to_base(c, 4, base_repr, &ind);
                 write_reversed_str_to_file(output_file, base_repr, ind - 1);
                 c = fgetc(input_file);
-                if (c  == EOF) {
+                if (c == EOF) {
                     return OK;
                 }
             } while (!is_delimiter(c));
-
         }
         if (current_count % 5 == 0 && current_count % 10 != 0) {
             skip_delimeters_until_symbol(input_file, &c);
             do {
                 fprintf(output_file, "%o", c);
                 c = fgetc(input_file);
-                if (c  == EOF) {
+                if (c == EOF) {
                     return OK;
                 }
             } while (!is_delimiter(c));
@@ -138,7 +136,7 @@ enum return_code for_a(FILE* input_file, FILE* output_file) {
                 }
                 fputc(c, output_file);
                 c = fgetc(input_file);
-                if (c  == EOF) {
+                if (c == EOF) {
                     return OK;
                 }
             } while (!is_delimiter(c));
@@ -148,7 +146,7 @@ enum return_code for_a(FILE* input_file, FILE* output_file) {
             do {
                 fputc(c, output_file);
                 c = fgetc(input_file);
-                if (c  == EOF) {
+                if (c == EOF) {
                     return OK;
                 }
             } while (!is_delimiter(c));
@@ -170,7 +168,7 @@ enum return_code for_r(FILE* input_file1, FILE* input_file2, FILE* output_file) 
     char first_file_char = ' ', second_file_char = ' ';
 
     while (first_file_char != EOF && second_file_char != EOF) {
-        if (current_count % 2 == 0) {
+        if (current_count % 2 == 1) {
             write_symbol_from_input_file_to_output_until_delimeter(input_file1, output_file, &first_file_char);
         } else {
             write_symbol_from_input_file_to_output_until_delimeter(input_file2, output_file, &second_file_char);
@@ -205,27 +203,155 @@ enum return_code is_valid_flag(char const* flag) {
     }
 }
 
+enum return_code print_file_errors(int error_num) {
+    switch (error_num) {
+        case BAD_POINTER_ERROR:
+            printf("One of the pointer is NULL\n");
+            return BAD_POINTER_ERROR;
+        case FILE_PATH_IS_TOO_LONG_ERROR:
+            printf("The path of directory is too long\n");
+            return FILE_PATH_IS_TOO_LONG_ERROR;
+        case OK:
+            return OK;
+        default:
+            return OK;
+    }
+    return OK;
+}
+
 int main(int argc, char* argv[]) {
-    // if (argc < 2) {
-    //     printf("Not enough arguments");
-    //     return WRONG_ARGUMENTS_ERROR;
-    // }
+    if (argc < 2) {
+        printf("Not enough arguments");
+        return WRONG_ARGUMENTS_ERROR;
+    }
 
-    // if (is_valid_flag(argv[1]) != OK) {
-    //     printf("Invalid flag\n");
-    //     return BAD_INPUT_ERROR;
-    // }
-    
+    if (is_valid_flag(argv[1]) != OK) {
+        printf("Invalid flag\n");
+        return BAD_INPUT_ERROR;
+    }
+    char flag = argv[1][1];
 
-    FILE* first_file = fopen("7.txt", "r");
-    FILE* second_file = fopen("71.txt", "r");
-    FILE* result = fopen("test.txt", "w");
-    for_a(first_file, result);
-    // while (c != EOF) {
-        // write_symbol_from_input_file_to_output_until_delimeter(first_file, result, &c);
-    // }
+    char path_of_current_directory[FILENAME_MAX];
+    memset(path_of_current_directory, '\0', FILENAME_MAX);
 
-    fclose(first_file);
-    fclose(second_file);
-    fclose(result);
+    char path_of_input_file_1[FILENAME_MAX];
+    memset(path_of_input_file_1, '\0', FILENAME_MAX);
+    char path_of_input_file_2[FILENAME_MAX];
+    memset(path_of_input_file_2, '\0', FILENAME_MAX);
+
+    char path_of_output_file[FILENAME_MAX];
+    memset(path_of_output_file, '\0', FILENAME_MAX);
+
+    FILE* first_input_file;
+    FILE* second_input_file;
+    FILE* output_file;
+
+    int result_of_parsing_path_to_file;
+    switch (flag) {
+        case 'r':
+            if (argc != 5) {
+                printf("Wrong amount of arguments\n");
+                return WRONG_ARGUMENTS_ERROR;
+            }
+
+            //current directory
+            result_of_parsing_path_to_file = get_path_of_current_directory(path_of_current_directory);
+            if (result_of_parsing_path_to_file != OK) {
+                print_file_errors(result_of_parsing_path_to_file);
+                return result_of_parsing_path_to_file;
+            }
+            
+            //input 1 file
+            result_of_parsing_path_to_file = modify_path_to_absolute(path_of_current_directory, argv[2], path_of_input_file_1);
+            if (result_of_parsing_path_to_file != OK) {
+                print_file_errors(result_of_parsing_path_to_file);
+                return result_of_parsing_path_to_file;
+            }
+            // input 2 file
+            result_of_parsing_path_to_file = modify_path_to_absolute(path_of_current_directory, argv[3], path_of_input_file_2);
+            if (result_of_parsing_path_to_file != OK) {
+                print_file_errors(result_of_parsing_path_to_file);
+                return result_of_parsing_path_to_file;
+            }
+            
+            // output file
+            result_of_parsing_path_to_file = modify_path_to_absolute(path_of_current_directory, argv[4], path_of_output_file);
+            if (result_of_parsing_path_to_file != OK) {
+                print_file_errors(result_of_parsing_path_to_file);
+                return result_of_parsing_path_to_file;
+            }
+            
+            first_input_file = fopen(path_of_input_file_1, "r");
+            if (!first_input_file) {
+                printf("File open error: %s\n", path_of_input_file_1);
+                return FILE_OPEN_ERROR;
+            }
+            second_input_file = fopen(path_of_input_file_2, "r");
+            if (!second_input_file) {
+                printf("File open error: %s\n", path_of_input_file_2);
+                fclose(first_input_file);
+                return FILE_OPEN_ERROR;
+            }
+            output_file = fopen(path_of_output_file, "w");
+            if (!output_file) {
+                printf("File open error: %s\n", path_of_output_file);
+                fclose(first_input_file);
+                fclose(second_input_file);
+                return FILE_OPEN_ERROR;
+            }
+            
+            for_r(first_input_file, second_input_file, output_file);
+            break;
+
+        case 'a':
+            if (argc != 4) {
+                printf("Wrong amount of arguments\n");
+                return WRONG_ARGUMENTS_ERROR;
+            }
+
+            //current directory
+            result_of_parsing_path_to_file = get_path_of_current_directory(path_of_current_directory);
+            if (result_of_parsing_path_to_file != OK) {
+                print_file_errors(result_of_parsing_path_to_file);
+                return result_of_parsing_path_to_file;
+            }
+            
+            //input file
+            result_of_parsing_path_to_file = modify_path_to_absolute(path_of_current_directory, argv[2], path_of_input_file_1);
+            if (result_of_parsing_path_to_file != OK) {
+                print_file_errors(result_of_parsing_path_to_file);
+                return result_of_parsing_path_to_file;
+            }
+
+            // output file
+            result_of_parsing_path_to_file = modify_path_to_absolute(path_of_current_directory, argv[3], path_of_output_file);
+            if (result_of_parsing_path_to_file != OK) {
+                print_file_errors(result_of_parsing_path_to_file);
+                return result_of_parsing_path_to_file;
+            }
+            
+            first_input_file = fopen(path_of_input_file_1, "r");
+            if (!first_input_file) {
+                printf("File open error: %s\n", path_of_input_file_1);
+                return FILE_OPEN_ERROR;
+            }
+
+            output_file = fopen(path_of_output_file, "w");
+            if (!output_file) {
+                printf("File open error: %s\n", path_of_output_file);
+                fclose(first_input_file);
+                return FILE_OPEN_ERROR;
+            }
+            
+            for_a(first_input_file, output_file);
+            break;
+        default:
+            break;
+    }
+
+    fclose(output_file);
+    fclose(first_input_file);
+    if (flag == 'r') {
+        fclose(second_input_file);
+    }
 }

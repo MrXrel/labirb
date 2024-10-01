@@ -2,7 +2,7 @@
 !/**/
 !*.*
 
-.txt
+*.txt
 
 # Prerequisites
 *.d
