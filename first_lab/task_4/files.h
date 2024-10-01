@@ -20,7 +20,7 @@ int is_absolute_path(const char* path) {
 #endif
 }
 
-int modify_path_to_absolute(const char* way_to_current_directory, const char* old_path, char* new_absolute_path_result) {
+enum file_errors_code modify_path_to_absolute(const char* way_to_current_directory, const char* old_path, char* new_absolute_path_result) {
     if (!way_to_current_directory || !old_path || !new_absolute_path_result) {
         return FILE_BAD_POINTER_ERROR;
     }
@@ -41,7 +41,7 @@ int modify_path_to_absolute(const char* way_to_current_directory, const char* ol
     return FILE_OK;
 }
 
-int get_path_of_current_directory(char* path_to_directory_result) {
+enum file_errors_code get_path_of_current_directory(char* path_to_directory_result) {
     if (!path_to_directory_result) {
         return FILE_BAD_POINTER_ERROR;
     }
@@ -53,7 +53,7 @@ int get_path_of_current_directory(char* path_to_directory_result) {
     return FILE_OK;
 }
 
-int get_output_filename(char const* path_input_file, char* path_output_file_result) {
+enum file_errors_code get_output_filename(char const* path_input_file, char* path_output_file_result) {
     if (!path_output_file_result || !path_input_file) {
         return FILE_BAD_POINTER_ERROR;
     }

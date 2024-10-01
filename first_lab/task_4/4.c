@@ -17,7 +17,7 @@ enum return_code {
 };
 
 
-int for_d(FILE* read_file, FILE* write_file) {
+enum return_code for_d(FILE* read_file, FILE* write_file) {
     if (!read_file || !write_file) {
         return FILE_OPEN_ERROR;
     }
@@ -31,7 +31,7 @@ int for_d(FILE* read_file, FILE* write_file) {
     return OK;
 }
 
-int for_i(FILE* read_file, FILE* write_file) {
+enum return_code for_i(FILE* read_file, FILE* write_file) {
     if (!read_file || !write_file) {
         return FILE_OPEN_ERROR;
     }
@@ -50,7 +50,7 @@ int for_i(FILE* read_file, FILE* write_file) {
     return OK;
 }
 
-int for_s(FILE* read_file, FILE* write_file) {
+enum return_code for_s(FILE* read_file, FILE* write_file) {
     if (!read_file || !write_file) {
         return FILE_OPEN_ERROR;
     }
@@ -70,7 +70,7 @@ int for_s(FILE* read_file, FILE* write_file) {
     return OK;
 }
 
-int for_a(FILE* read_file, FILE* write_file) {
+enum return_code for_a(FILE* read_file, FILE* write_file) {
     if (!read_file || !write_file) {
         return FILE_OPEN_ERROR;
     }
@@ -91,7 +91,7 @@ int for_a(FILE* read_file, FILE* write_file) {
 
 
 
-int is_valid_flag(char const* flag) {
+enum return_code is_valid_flag(char const* flag) {
     if (strlen(flag) != 2 || !(flag[0] == '-' || flag[0] == '/')) {
         return BAD_INPUT_ERROR;
     }
@@ -105,7 +105,8 @@ int is_valid_flag(char const* flag) {
             return BAD_INPUT_ERROR;
     }
 }
-int is_valid_nflag(char const* flag) {
+
+enum return_code is_valid_nflag(char const* flag) {
     if (strlen(flag) != 3 || !(flag[0] == '-' || flag[0] == '/') || flag[1] != 'n') {
         return BAD_INPUT_ERROR;
     }
@@ -120,7 +121,7 @@ int is_valid_nflag(char const* flag) {
     }
 }
 
-int print_file_errors(int error_num) {
+enum return_code print_file_errors(int error_num) {
     switch (error_num) {
         case BAD_POINTER_ERROR:
             printf("One of the pointer is NULL\n");
@@ -198,7 +199,7 @@ int main(int argc, char* argv[]) {
             return result_of_output_file;
         }
     }
-    
+
     FILE* input;
     FILE* output;
 
