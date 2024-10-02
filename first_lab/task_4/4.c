@@ -198,6 +198,10 @@ int main(int argc, char* argv[]) {
             print_file_errors(result_of_output_file);
             return result_of_output_file;
         }
+        if (strcmp(path_of_input_file, path_of_output_file) == 0) {
+            printf("Same files error\n");
+            return BAD_INPUT_ERROR;
+        }
     }
 
     FILE* input;

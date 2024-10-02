@@ -63,19 +63,6 @@ enum return_code skip_delimeters_until_symbol(FILE* input_file, char* c) {
     return OK;
 }
 
-enum return_code read_next_symbol_of_file(FILE* input, char* c) {
-    if (!input) {
-        return FILE_OPEN_ERROR;
-    }
-    do {
-        *c = fgetc(input);
-        if (*c == EOF) {
-            return OK;
-        }
-    } while (is_delimiter(*c));
-    return OK;
-}
-
 enum return_code write_symbol_from_input_file_to_output_until_delimeter(FILE* input, FILE* output, char* last_char) {
     if (!input || !output) {
         return FILE_OPEN_ERROR;
@@ -219,6 +206,10 @@ enum return_code print_file_errors(int error_num) {
     return OK;
 }
 
+int is_equal_path(char const* first_path, char const* second_path) {
+    return (strcmp(first_path, second_path) == 0);
+}
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("Not enough arguments");
@@ -254,14 +245,14 @@ int main(int argc, char* argv[]) {
                 return WRONG_ARGUMENTS_ERROR;
             }
 
-            //current directory
+            // current directory
             result_of_parsing_path_to_file = get_path_of_current_directory(path_of_current_directory);
             if (result_of_parsing_path_to_file != OK) {
                 print_file_errors(result_of_parsing_path_to_file);
                 return result_of_parsing_path_to_file;
             }
-            
-            //input 1 file
+
+            // input 1 file
             result_of_parsing_path_to_file = modify_path_to_absolute(path_of_current_directory, argv[2], path_of_input_file_1);
             if (result_of_parsing_path_to_file != OK) {
                 print_file_errors(result_of_parsing_path_to_file);
@@ -273,14 +264,23 @@ int main(int argc, char* argv[]) {
                 print_file_errors(result_of_parsing_path_to_file);
                 return result_of_parsing_path_to_file;
             }
-            
+            if (is_equal_path(path_of_input_file_1, path_of_input_file_2)) {
+                printf("Same file\n");
+                return BAD_INPUT_ERROR;
+            }
             // output file
             result_of_parsing_path_to_file = modify_path_to_absolute(path_of_current_directory, argv[4], path_of_output_file);
             if (result_of_parsing_path_to_file != OK) {
                 print_file_errors(result_of_parsing_path_to_file);
                 return result_of_parsing_path_to_file;
             }
-            
+
+            if (is_equal_path(path_of_input_file_1, path_of_output_file) ||
+                is_equal_path(path_of_input_file_2, path_of_output_file)) {
+                printf("Same file\n");
+                return BAD_INPUT_ERROR;
+            }
+
             first_input_file = fopen(path_of_input_file_1, "r");
             if (!first_input_file) {
                 printf("File open error: %s\n", path_of_input_file_1);
@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
                 fclose(second_input_file);
                 return FILE_OPEN_ERROR;
             }
-            
+
             for_r(first_input_file, second_input_file, output_file);
             break;
 
@@ -309,14 +309,14 @@ int main(int argc, char* argv[]) {
                 return WRONG_ARGUMENTS_ERROR;
             }
 
-            //current directory
+            // current directory
             result_of_parsing_path_to_file = get_path_of_current_directory(path_of_current_directory);
             if (result_of_parsing_path_to_file != OK) {
                 print_file_errors(result_of_parsing_path_to_file);
                 return result_of_parsing_path_to_file;
             }
-            
-            //input file
+
+            // input file
             result_of_parsing_path_to_file = modify_path_to_absolute(path_of_current_directory, argv[2], path_of_input_file_1);
             if (result_of_parsing_path_to_file != OK) {
                 print_file_errors(result_of_parsing_path_to_file);
@@ -329,7 +329,12 @@ int main(int argc, char* argv[]) {
                 print_file_errors(result_of_parsing_path_to_file);
                 return result_of_parsing_path_to_file;
             }
-            
+
+            if (is_equal_path(path_of_input_file_1, path_of_output_file)) {
+                printf("Same file\n");
+                return BAD_INPUT_ERROR;
+            }
+
             first_input_file = fopen(path_of_input_file_1, "r");
             if (!first_input_file) {
                 printf("File open error: %s\n", path_of_input_file_1);
@@ -342,7 +347,7 @@ int main(int argc, char* argv[]) {
                 fclose(first_input_file);
                 return FILE_OPEN_ERROR;
             }
-            
+
             for_a(first_input_file, output_file);
             break;
         default:
