@@ -117,6 +117,9 @@ enum return_code find_min_base_for_numbers(FILE* input_file, FILE* output_file) 
 
                 number_str[index_end_of_number_str] = c;
                 ++index_end_of_number_str;
+                if (index_end_of_number_str >= BUFSIZ) {
+                    return OVERFLOW_ERROR;
+                }
                 if (c != '-') {
                     has_digits_before_not_zero = 1;
                 }
@@ -160,6 +163,10 @@ enum return_code print_file_errors(int error_num) {
     return OK;
 }
 
+int is_equal_path(char const* first_path, char const* second_path) {
+    return (strcmp(first_path, second_path) == 0);
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         printf("Wrong amount of arguments");
@@ -189,6 +196,11 @@ int main(int argc, char* argv[]) {
     if (result_of_output_file != OK) {
         print_file_errors(result_of_output_file);
         return result_of_output_file;
+    }
+    
+    if (is_equal_path(path_of_input_file, path_of_output_file)) {
+        printf("Same files error\n");
+        return BAD_INPUT_ERROR;
     }
 
     FILE* input;
