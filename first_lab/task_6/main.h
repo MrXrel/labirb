@@ -2,5 +2,6 @@
 #define MAIN_H
 
 #include "functions.h"
+#include "return_code.h"
 
 #endif
