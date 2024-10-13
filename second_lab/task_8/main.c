@@ -56,7 +56,7 @@ void print_mistakes(enum return_code error) {
 int main() { 
     // char* r;
     char* str;
-    int rt = calculate_sum(&str, 10, 3, "10000000000", "9", "0");
+    int rt = calculate_sum(&str, 10, 3, "+990", "1", "0");
     if (rt != OK) {
         print_mistakes(rt);
         return rt;

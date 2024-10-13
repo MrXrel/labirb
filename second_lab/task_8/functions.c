@@ -1,11 +1,14 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <ctype.h>
-
 #include "functions.h"
 
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+
 int is_valid_symbol_in_base(char const c, int base) {
+    if (c == '\0') {
+        return 1;
+    }
     if (base >= 2 && base <= 9) {
         return (c >= '0' && c < ('0' + base));
     }
@@ -54,7 +57,6 @@ enum return_code write_reversed_to_buffer(char** buffer, int* buffer_ind, int ba
         --end_of_number;
         ++(*buffer_ind);
         if (*buffer_ind >= *buffer_capacity) {
-            
             char* new_buffer = (char*)realloc(*buffer, (*buffer_capacity) * 2 * sizeof(char) + 1);
             if (!new_buffer) {
                 return MEMORY_ALLOC_ERROR;
@@ -77,13 +79,29 @@ enum return_code sum_reversed_numbers(int base, char** num1, char const* num2, i
     int biggest_num_in_base = base - 1;
     int to_add = 0;
     int ind = 0;
-
-    while (**num1 != '\0' && *num2 != '\0') {
+    int first_is_over = 0, second_is_over = 0;
+    while (!first_is_over || !second_is_over) {
         if (!is_valid_symbol_in_base(**num1, base) || !is_valid_symbol_in_base(*num2, base)) {
             return BAD_INPUT_ERROR;
         }
-        int first = char_to_number(**num1);
-        int second = char_to_number(*num2);
+        int first, second;
+        if (**num1 != '\0' && !first_is_over) {
+            first = char_to_number(**num1);
+        } else {
+            first = 0;
+            first_is_over = 1;
+        }
+        if (*num2 != '\0' && !second_is_over) {
+            second = char_to_number(*num2);
+        } else {
+            second = 0;
+            second_is_over = 1;
+        }
+
+        if (first_is_over && second_is_over) {
+            break;
+        }
+
         // sum to nums with to_add
         int res = first + second + to_add;
         to_add = 0;
@@ -105,66 +123,16 @@ enum return_code sum_reversed_numbers(int base, char** num1, char const* num2, i
             result = new_result;
             *num1 = result + ind - 1;
         }
-        ++(*num1);
-        ++num2;
+        if (!first_is_over) {
+            ++(*num1);
+        }
+        if (!second_is_over) {
+            ++num2;
+        }
     }
-
-    while (**num1 != '\0') {
-        if (!is_valid_symbol_in_base(**num1, base)) {
-            return BAD_INPUT_ERROR;
-        }
-        int res = char_to_number(**num1) + to_add;
-        to_add = 0;
-        if (res > biggest_num_in_base) {
-            to_add = 1;
-            res -= base;
-        }
-        result[ind] = number_to_char(res);
-
-        ++ind;
-        if (ind >= *num1_capacity) {
-            *num1_capacity *= 2;
-            char* new_result = (char*)realloc(result, *num1_capacity * sizeof(char) + 1);
-            if (!new_result) {
-                return MEMORY_ALLOC_ERROR;
-            }
-            new_result[*num1_capacity] = '\0';
-            result = new_result;
-            *num1 = result + ind - 1;
-        }
-        ++(*num1);
-    }
-
-    while (*num2 != '\0') {
-        if (!is_valid_symbol_in_base(*num2, base)) {
-            return BAD_INPUT_ERROR;
-        }
-        int res = char_to_number(*num2) + to_add;
-        to_add = 0;
-        if (res > biggest_num_in_base) {
-            to_add = 1;
-            res -= base;
-        }
-        result[ind] = number_to_char(res);
-        ++ind;
-
-        if (ind >= *num1_capacity) {
-            *num1_capacity *= 2;
-            char* new_result = (char*)realloc(result, *num1_capacity * sizeof(char) + 1);
-            if (!new_result) {
-                return MEMORY_ALLOC_ERROR;
-            }
-            new_result[*num1_capacity] = '\0';
-            result = new_result;
-            *num1 = result + ind;
-        }
-        ++num2;
-    }
-    
     if (to_add != 0) {
         result[ind] = '1';
         ++ind;
-
         if (ind >= *num1_capacity) {
             *num1_capacity *= 2;
             char* new_result = (char*)realloc(result, *num1_capacity * sizeof(char) + 1);
@@ -175,7 +143,7 @@ enum return_code sum_reversed_numbers(int base, char** num1, char const* num2, i
             result = new_result;
             *num1 = result + ind - 1;
         }
-        
+
     }
     result[ind] = '\0';
     *num1 = result;
@@ -213,7 +181,7 @@ enum return_code skip_zeros_signs(char const** start) {
         if (**start == '+' && has_digits) {
             return BAD_INPUT_ERROR;
         }
-    
+
         if (**start == '+') {
             has_plus = 1;
             ++(*start);
