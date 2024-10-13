@@ -5,7 +5,7 @@
 #include <string.h>
 
 void good_tests() {
-    char* sums[6] = {"", "", "", "", "", "", ""};
+    char* sums[6] = {"", "", "", "", "", ""};
 
     enum return_code res[6];
 
@@ -56,12 +56,13 @@ void print_mistakes(enum return_code error) {
 int main() { 
     // char* r;
     char* str;
-    int rt = calculate_sum(&str, 16, 3, "122", "392", "329");
+    int rt = calculate_sum(&str, 10, 3, "10000000000", "9", "0");
     if (rt != OK) {
         print_mistakes(rt);
         return rt;
     }
     printf("Sum = %s\n", str);
     free(str);
+    
     good_tests();
 }

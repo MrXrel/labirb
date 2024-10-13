@@ -32,8 +32,8 @@ int is_valid_base(int base) {
     return base >= 2 && base <= 36;
 }
 
-enum return_code write_reversed_to_buffer(char* buffer, int* buffer_ind, int base, char const* start_of_number, char const* end_of_number) {
-    if (!buffer || !buffer_ind || !start_of_number || !end_of_number) {
+enum return_code write_reversed_to_buffer(char** buffer, int* buffer_ind, int base, char const* start_of_number, char const* end_of_number, int* buffer_capacity) {
+    if (!(*buffer) || !buffer_ind || !start_of_number || !end_of_number || !buffer_capacity) {
         return BAD_POINTER_ERROR;
     }
     if (!is_valid_base(base)) {
@@ -41,8 +41,8 @@ enum return_code write_reversed_to_buffer(char* buffer, int* buffer_ind, int bas
     }
 
     if (*start_of_number == '\0') {
-        buffer[0] = '0';
-        buffer[1] = '\0';
+        (*buffer)[0] = '0';
+        (*buffer)[1] = '\0';
         return OK;
     }
 
@@ -50,33 +50,39 @@ enum return_code write_reversed_to_buffer(char* buffer, int* buffer_ind, int bas
         if (!is_valid_symbol_in_base(*end_of_number, base)) {
             return BAD_INPUT_ERROR;
         }
-        buffer[*buffer_ind] = *end_of_number;
+        (*buffer)[*buffer_ind] = *end_of_number;
         --end_of_number;
         ++(*buffer_ind);
-        if (*buffer_ind > LENGTH_OF_NUMBER) {
-            return OVERFLOW_ERROR;
+        if (*buffer_ind >= *buffer_capacity) {
+            
+            char* new_buffer = (char*)realloc(*buffer, (*buffer_capacity) * 2 * sizeof(char) + 1);
+            if (!new_buffer) {
+                return MEMORY_ALLOC_ERROR;
+            }
+            *buffer = new_buffer;
+            (*buffer_capacity) *= 2;
         }
     } while (end_of_number >= start_of_number);
     return OK;
 }
 
-enum return_code sum_reversed_numbers(int base, char* num1, char const* num2) {
-    if (!num1 || !num2) {
+enum return_code sum_reversed_numbers(int base, char** num1, char const* num2, int* num1_capacity) {
+    if (!num1 || !num2 || !num1_capacity) {
         return BAD_POINTER_ERROR;
     }
     if (!is_valid_base(base)) {
         return BAD_INPUT_ERROR;
     }
-    char* result = num1;
+    char* result = *num1;
     int biggest_num_in_base = base - 1;
     int to_add = 0;
     int ind = 0;
 
-    while (*num1 != '\0' && *num2 != '\0') {
-        if (!is_valid_symbol_in_base(*num1, base) || !is_valid_symbol_in_base(*num2, base)) {
+    while (**num1 != '\0' && *num2 != '\0') {
+        if (!is_valid_symbol_in_base(**num1, base) || !is_valid_symbol_in_base(*num2, base)) {
             return BAD_INPUT_ERROR;
         }
-        int first = char_to_number(*num1);
+        int first = char_to_number(**num1);
         int second = char_to_number(*num2);
         // sum to nums with to_add
         int res = first + second + to_add;
@@ -88,18 +94,26 @@ enum return_code sum_reversed_numbers(int base, char* num1, char const* num2) {
         }
         result[ind] = number_to_char(res);
         ++ind;
-        if (ind > LENGTH_OF_NUMBER) {
-            return OVERFLOW_ERROR;
+
+        if (ind >= *num1_capacity) {
+            *num1_capacity *= 2;
+            char* new_result = (char*)realloc(result, *num1_capacity * sizeof(char) + 1);
+            if (!new_result) {
+                return MEMORY_ALLOC_ERROR;
+            }
+            new_result[*num1_capacity] = '\0';
+            result = new_result;
+            *num1 = result + ind - 1;
         }
-        ++num1;
+        ++(*num1);
         ++num2;
     }
 
-    while (*num1 != '\0') {
-        if (!is_valid_symbol_in_base(*num1, base)) {
+    while (**num1 != '\0') {
+        if (!is_valid_symbol_in_base(**num1, base)) {
             return BAD_INPUT_ERROR;
         }
-        int res = char_to_number(*num1) + to_add;
+        int res = char_to_number(**num1) + to_add;
         to_add = 0;
         if (res > biggest_num_in_base) {
             to_add = 1;
@@ -108,10 +122,17 @@ enum return_code sum_reversed_numbers(int base, char* num1, char const* num2) {
         result[ind] = number_to_char(res);
 
         ++ind;
-        if (ind > LENGTH_OF_NUMBER) {
-            return OVERFLOW_ERROR;
+        if (ind >= *num1_capacity) {
+            *num1_capacity *= 2;
+            char* new_result = (char*)realloc(result, *num1_capacity * sizeof(char) + 1);
+            if (!new_result) {
+                return MEMORY_ALLOC_ERROR;
+            }
+            new_result[*num1_capacity] = '\0';
+            result = new_result;
+            *num1 = result + ind - 1;
         }
-        ++num1;
+        ++(*num1);
     }
 
     while (*num2 != '\0') {
@@ -126,8 +147,16 @@ enum return_code sum_reversed_numbers(int base, char* num1, char const* num2) {
         }
         result[ind] = number_to_char(res);
         ++ind;
-        if (ind > LENGTH_OF_NUMBER) {
-            return OVERFLOW_ERROR;
+
+        if (ind >= *num1_capacity) {
+            *num1_capacity *= 2;
+            char* new_result = (char*)realloc(result, *num1_capacity * sizeof(char) + 1);
+            if (!new_result) {
+                return MEMORY_ALLOC_ERROR;
+            }
+            new_result[*num1_capacity] = '\0';
+            result = new_result;
+            *num1 = result + ind;
         }
         ++num2;
     }
@@ -135,12 +164,21 @@ enum return_code sum_reversed_numbers(int base, char* num1, char const* num2) {
     if (to_add != 0) {
         result[ind] = '1';
         ++ind;
-        if (ind > LENGTH_OF_NUMBER) {
-            return OVERFLOW_ERROR;
+
+        if (ind >= *num1_capacity) {
+            *num1_capacity *= 2;
+            char* new_result = (char*)realloc(result, *num1_capacity * sizeof(char) + 1);
+            if (!new_result) {
+                return MEMORY_ALLOC_ERROR;
+            }
+            new_result[*num1_capacity] = '\0';
+            result = new_result;
+            *num1 = result + ind - 1;
         }
         
     }
     result[ind] = '\0';
+    *num1 = result;
     return OK;
 }
 
@@ -194,18 +232,21 @@ enum return_code calculate_sum(char** sum_result, int base, int count, ...) {
     if (!is_valid_base(base) || count <= 0) {
         return BAD_INPUT_ERROR;
     }
-    char* result = (char*)malloc(LENGTH_OF_NUMBER * sizeof(char) + 1);
+    char* result = (char*)malloc(INITIAL_LENGTH_OF_NUMBER * sizeof(char) + 1);
     if (!result) {
         return MEMORY_ALLOC_ERROR;
     }
     result[0] = '0';
     result[1] = '\0';
 
-    char* buffer = (char*)malloc(LENGTH_OF_NUMBER * sizeof(char) + 1);
+    char* buffer = (char*)malloc(INITIAL_LENGTH_OF_NUMBER * sizeof(char) + 1);
     if (!buffer) {
         free(result);
         return MEMORY_ALLOC_ERROR;
     }
+    int result_capacity = INITIAL_LENGTH_OF_NUMBER;
+    int buffer_capacity = INITIAL_LENGTH_OF_NUMBER;
+
     int buffer_ind = 0;
 
     va_list args;
@@ -224,17 +265,16 @@ enum return_code calculate_sum(char** sum_result, int base, int count, ...) {
             return res_of_skip;
         }
 
-        int result_of_write = write_reversed_to_buffer(buffer, &buffer_ind, base, start_num, end_of_num);
+        int result_of_write = write_reversed_to_buffer(&buffer, &buffer_ind, base, start_num, end_of_num, &buffer_capacity);
         if (result_of_write != OK) {
             free(buffer);
             free(result);
             va_end(args);
             return result_of_write;
         }
-        
         buffer[buffer_ind] = '\0';
-        
-        int result_of_sum = sum_reversed_numbers(base, result, buffer);
+
+        int result_of_sum = sum_reversed_numbers(base, &result, buffer, &result_capacity);
         if (result_of_sum != OK) {
             free(buffer);
             free(result);
