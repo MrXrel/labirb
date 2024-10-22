@@ -33,7 +33,7 @@ int main() {
     printf("\n");
 
     overfprintf(stdout, "Dump of int 1: %mi\n", 1);
-    overfprintf(stdout, "Dump of uint 1: %mu\n", ((unsigned int)INT_MAX));
+    overfprintf(stdout, "Dump of uint INT_MAX + 2: %mu\n", ((unsigned int)INT_MAX + 2));
     overfprintf(stdout, "Dump of double 1.1: %md\n", (double)1.1);
     overfprintf(stdout, "Dump of float  1.2: %mf\n", (float)1.1);
     overfprintf(stdout, "Regular flags %d %s %.15f\n", 15, "hello", 1.23);
