@@ -8,9 +8,7 @@
 
 #include <unistd.h>
 
-int main() {
-    
-
+enum return_code test_overprintf() {
     printf("Overfprintf:\n");
 
     overfprintf(stdout, "155 in Roman: %Ro\n", 155);
@@ -68,7 +66,7 @@ int main() {
     }
     overfprintf(file, "155 in Roman: %Ro\n", 155);
     overfprintf(file, "-1124 in Roman: %Ro\n", -1124);
-    overfprintf(file, "5023 in Roman > 4000: %Ro\n", 5023);
+    overfprintf(file, "5023 in Roman >= 4000: %Ro\n", 5023);
 
     overfprintf(file, "100 in zerkendorf repr: %Zr\n", 100);
 
@@ -88,4 +86,10 @@ int main() {
     overfprintf(file, "Regular flags %d %s %.15f\n", 15, "hello", 1.23);
 
     fclose(file);
+    return OK;
+}
+
+int main() {
+    test_overprintf();
+    return OK;
 }

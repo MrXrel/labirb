@@ -7,6 +7,16 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+int is_valid_symbol_in_base(char c, int base) {
+    if (c == '+' || c == '-') {
+        return 1;
+    }
+    if (base >= 2 && base <= 9) {
+        return (c >= '0' && c < ('0' + base));
+    }
+    // base >= 10
+    return isdigit(c) || (c >= 'A' && c < ('A' + base - 10));
+}
 
 void print_universal(void* stream, TYPE_OF_PRINT type, const char* format, ...) {
     va_list args;
@@ -46,6 +56,10 @@ enum return_code convert_to_decimal(const char* num_repr_in_base, int end_of_num
     for (int i = 0; i < end_of_num_repr; i++) {
         char c = (num_repr_in_base[i]);
         if (c != format_char(num_repr_in_base[i])) {
+            return BAD_INPUT_ERROR;
+        }
+
+        if (!is_valid_symbol_in_base(toupper(c), base)) {
             return BAD_INPUT_ERROR;
         }
 
@@ -198,22 +212,31 @@ enum return_code print_zeckendorf(void* stream, TYPE_OF_PRINT type_of_print, uns
         return result_of_fib_generation;
     }
 
+    char* result = (char*)malloc(size + 1);
+    if (!result) {
+        free(fib);
+        return MEMORY_ALLOC_ERROR;
+    }
+
     int amount_of_numbers = 0;
+    
     for (int i = size - 1; i >= 0; --i) {
         if (fib[i] <= num) {
-            print_universal(stream, type_of_print, "%c", '1');
+            result[amount_of_numbers++] = '1';
             num -= fib[i];
-            amount_of_numbers += 1;
-        }
-        else {
-            if (amount_of_numbers > 0){
-                print_universal(stream, type_of_print, "%c", '0');
-            }
+        } else if (amount_of_numbers > 0) {
+            result[amount_of_numbers++] = '0';
         }
     }
+
+    print_to_stream_reversed(stream, type_of_print, result, amount_of_numbers - 1);
+    print_universal(stream, type_of_print, "%c", '1');
+
     free(fib);
+    free(result);
     return OK;
 }
+
 
 enum return_code print_int_to_roman(void* stream, TYPE_OF_PRINT type_of_print, int num) {
     if (!stream) {
@@ -366,7 +389,7 @@ enum return_code general_printf(void* stream, TYPE_OF_PRINT type_of_print, const
         ((char*)stream)[0] = '\0';
     }
     const char* pos = format;
-    char buffer[1024];
+    char buffer[BUFFER_SIZE];
     int buffer_pos = 0;
 
     while (*pos) {
@@ -386,8 +409,13 @@ enum return_code general_printf(void* stream, TYPE_OF_PRINT type_of_print, const
             buffer[buffer_pos++] = '%';
             while (*pos && !strchr("diufFeEgGxXoscpaA", *pos)) {
                 buffer[buffer_pos++] = *pos++;
+                if (buffer_pos >= BUFFER_SIZE - 1) {
+                    break;
+                }
             }
-            buffer[buffer_pos++] = *pos;
+            if (buffer_pos < BUFFER_SIZE - 1) {
+                buffer[buffer_pos++] = *pos;
+            }
 
             buffer[buffer_pos] = '\0';
             if (type_of_print == PRINT_TO_FILE_STREAM) {

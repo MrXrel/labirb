@@ -6,6 +6,7 @@
 
 
 #define INITIAL_SIZE_OF_FIB 10
+#define BUFFER_SIZE 1024
 
 typedef void (*printer) (void* stream, TYPE_OF_PRINT type, const char* format, ...);
 typedef int (*format_for_char) (int);
